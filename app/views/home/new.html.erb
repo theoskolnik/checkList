@@ -13,7 +13,7 @@
 	<script type="text/babel">
 		var Wrapper = React.createClass({
 			refreshName: function() {
-				console.log("refresh name by sending ajax request to " + this.props.url);
+				console.log("refresh name by sending ajax request to " + this.props.baseUrl);				
 				// $.ajax({
 				// 	url: this.props.url, 
 				// 	dataType: 'json',
@@ -28,14 +28,30 @@
 				}.bind(this)
 				);
 			},
+			handleListSubmit: function(data) {
+				console.log("send list title and create a list " + data.name)
+				$.ajax({
+					url: this.props.baseUrl + "/list/create", 
+					dataType: 'json',
+					type: 'POST', 
+					data: data,
+					success: function(data) {
+						this.setState({name: data.name});
+					}.bind(this),
+					error: function(xhr, status, err) {
+						console.error(this.props.url, status, err.toString());
+					}.bind(this)
+				});
+			},
 			getInitialState: function() {
 				return {name: ''}
 			},
 			render: function() {
 				return (
 					<div>
-						<Button text="Click this to create a List" wasabi={this.refreshName} />
+						<Button text="ADD NEW LIST" wasabi={this.refreshName} />
 						<List name={this.state.name} />
+						<ListForm onListSubmit={this.handleListSubmit} />
 					</div>
 				)
 			}
@@ -49,16 +65,34 @@
 			}
 		});
 
+		var ListForm = React.createClass({
+			handleSubmit: function(e) {
+				e.preventDefault();
+				var name = this.refs.name.value.trim();
+				this.props.onListSubmit({name: name});
+			},
+			render: function() {
+				return (
+				<form onSubmit={this.handleSubmit}>
+					List title:	<input type="text" placeholder="list title" ref="name" />
+					<input type="submit" />
+				</form>
+				);
+			}
+		});	
+
 		var List = React.createClass({
 			render: function() {
 				return (
-					<div>List Name: {this.props.name}</div>
+					<div>
+					List Name: {this.props.name}
+					</div>
 				)
 			}
-		})
+		});
 
 		ReactDOM.render(
-      <Wrapper url="http://localhost:3000" />,
+      <Wrapper baseUrl="http://localhost:3000" />,
       document.getElementById('main')
     ); 
 	</script>
